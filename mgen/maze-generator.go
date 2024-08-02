@@ -1,7 +1,6 @@
 package mgen
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -10,18 +9,22 @@ type MazeGenerator struct {
 	Generated bool
 }
 
-func New(w int, h int) (*MazeGenerator, error) {
+func NewGenerator() *MazeGenerator {
 	return &MazeGenerator{
-		Maze:      NewMaze(w, h),
 		Generated: false,
-	}, nil
+	}
 }
 
-func (mg *MazeGenerator) Generate() (*Maze, error) {
+func (mg *MazeGenerator) Generate(w int, h int) (*Maze, error) {
+	mg.Maze = NewMaze(w, h)
+	startX, endX := rand.Intn(w), rand.Intn(w)
+	mg.Maze.StartTile = NewTile(startX, -1, w, h)
+	mg.Maze.EndTile = NewTile(endX, h, w, h)
+	mg.Maze.Tiles = append(mg.Maze.Tiles, mg.Maze.StartTile, mg.Maze.EndTile)
+
 	tileStack := []*Tile{}
 
 	startTile := mg.Maze.GetRandomTile()
-	fmt.Println(startTile)
 
 	currentTile := startTile
 	currentTile.Visited = true
@@ -35,7 +38,7 @@ func (mg *MazeGenerator) Generate() (*Maze, error) {
 			}
 
 			// backtrack
-			currentTile = tileStack[len(tileStack)-1]
+			currentTile = tileStack[len(tileStack)-2]
 			tileStack = tileStack[:len(tileStack)-1]
 			continue
 		}

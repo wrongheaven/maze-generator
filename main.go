@@ -1,22 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/wrongheaven/maze-generator/mgen"
 )
 
 func main() {
-	generator, err := mgen.New(4, 4)
-	check(err)
-	maze, err := generator.Generate()
+	width, height := 32, 32
+	generator := mgen.NewGenerator()
+	maze, err := generator.Generate(width, height)
 	check(err)
 
-	fmt.Println()
-	for _, tile := range maze.Tiles {
-		fmt.Println(tile.Draw())
-	}
+	maze.PrintToConsole()
 }
 
 func check(err error) {
