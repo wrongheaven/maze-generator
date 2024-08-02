@@ -1,6 +1,9 @@
 package mgen
 
-import "math/rand"
+import (
+	"errors"
+	"math/rand"
+)
 
 type Maze struct {
 	Width  int
@@ -17,7 +20,7 @@ func NewMaze(w int, h int) *Maze {
 	var tiles []*Tile
 	for row := range h {
 		for col := range w {
-			tiles = append(tiles, NewTile(col, row))
+			tiles = append(tiles, NewTile(col, row, w, h))
 		}
 	}
 
@@ -26,44 +29,44 @@ func NewMaze(w int, h int) *Maze {
 	return maze
 }
 
+func (m *Maze) GetTile(x int, y int) (*Tile, error) {
+	for _, tile := range m.Tiles {
+		if tile.X == x && tile.Y == y {
+			return tile, nil
+		}
+	}
+	return nil, errors.New("tile not found")
+}
+
 func (m *Maze) GetRandomTile() *Tile {
-	walls := make(map[Dir]bool)
-	walls[North] = false
-	walls[East] = false
-	walls[South] = false
-	walls[West] = false
+	i := rand.Intn(len(m.Tiles))
+	return m.Tiles[i]
+}
 
-	return &Tile{
-		X:     rand.Intn(m.Width),
-		Y:     rand.Intn(m.Height),
-		Walls: walls,
+func (m *Maze) GetUnvisitedNeighbors(srcTile *Tile) ([]*Tile, []Dir) {
+	nn, _ := m.GetTile(srcTile.X, srcTile.Y-1) // north
+	ns, _ := m.GetTile(srcTile.X, srcTile.Y+1) // south
+	ne, _ := m.GetTile(srcTile.X+1, srcTile.Y) // east
+	nw, _ := m.GetTile(srcTile.X-1, srcTile.Y) // west
+
+	var neighbors []*Tile
+	var dirs []Dir
+	if nn != nil && !nn.Visited {
+		neighbors = append(neighbors, nn)
+		dirs = append(dirs, North)
 	}
-}
-
-type Tile struct {
-	X, Y  int
-	Walls map[Dir]bool
-}
-
-func NewTile(x int, y int) *Tile {
-	walls := make(map[Dir]bool)
-	walls[North] = false
-	walls[East] = false
-	walls[South] = false
-	walls[West] = false
-
-	return &Tile{
-		X:     x,
-		Y:     y,
-		Walls: walls,
+	if ns != nil && !ns.Visited {
+		neighbors = append(neighbors, ns)
+		dirs = append(dirs, South)
 	}
+	if ne != nil && !ne.Visited {
+		neighbors = append(neighbors, ne)
+		dirs = append(dirs, East)
+	}
+	if nw != nil && !nw.Visited {
+		neighbors = append(neighbors, nw)
+		dirs = append(dirs, West)
+	}
+
+	return neighbors, dirs
 }
-
-type Dir int
-
-const (
-	North Dir = 1
-	East  Dir = 2
-	South Dir = 3
-	West  Dir = 4
-)

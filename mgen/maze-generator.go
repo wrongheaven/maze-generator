@@ -1,8 +1,8 @@
 package mgen
 
 import (
-	"errors"
 	"fmt"
+	"math/rand"
 )
 
 type MazeGenerator struct {
@@ -11,10 +11,6 @@ type MazeGenerator struct {
 }
 
 func New(w int, h int) (*MazeGenerator, error) {
-	if w < 4 || h < 4 {
-		return nil, errors.New("width and height must be >= 4")
-	}
-
 	return &MazeGenerator{
 		Maze:      NewMaze(w, h),
 		Generated: false,
@@ -22,9 +18,39 @@ func New(w int, h int) (*MazeGenerator, error) {
 }
 
 func (mg *MazeGenerator) Generate() (*Maze, error) {
-	currentTile := mg.Maze.GetRandomTile()
+	tileStack := []*Tile{}
 
-	fmt.Println(currentTile)
+	startTile := mg.Maze.GetRandomTile()
+	fmt.Println(startTile)
+
+	currentTile := startTile
+	currentTile.Visited = true
+	tileStack = append(tileStack, currentTile)
+
+	for {
+		unvisitedNeighbors, dirs := mg.Maze.GetUnvisitedNeighbors(currentTile)
+		if len(unvisitedNeighbors) == 0 {
+			if currentTile == startTile {
+				break
+			}
+
+			// backtrack
+			currentTile = tileStack[len(tileStack)-1]
+			tileStack = tileStack[:len(tileStack)-1]
+			continue
+		}
+
+		// Pick random neighbor
+		r := rand.Intn(len(unvisitedNeighbors))
+		otherTile := unvisitedNeighbors[r]
+
+		currentTile.Walls[dirs[r]] = false
+		otherTile.Walls[OppDir(dirs[r])] = false
+
+		currentTile = otherTile
+		currentTile.Visited = true
+		tileStack = append(tileStack, currentTile)
+	}
 
 	return mg.Maze, nil
 }
