@@ -1,28 +1,30 @@
 package mgen
 
 import (
+	"errors"
 	"math/rand"
 )
 
 type MazeGenerator struct {
-	Maze      *Maze
-	Generated bool
+	Maze *Maze
 }
 
 func NewGenerator() *MazeGenerator {
-	return &MazeGenerator{
-		Generated: false,
-	}
+	return &MazeGenerator{}
 }
 
 func (mg *MazeGenerator) Generate(w int, h int) (*Maze, error) {
+	if w < 1 || h < 1 {
+		return nil, errors.New("width and height must be > 0")
+	}
+
 	mg.Maze = NewMaze(w, h)
 	startX, endX := rand.Intn(w), rand.Intn(w)
 	mg.Maze.StartTile = NewTile(startX, -1, w, h)
 	mg.Maze.EndTile = NewTile(endX, h, w, h)
 	mg.Maze.Tiles = append(mg.Maze.Tiles, mg.Maze.StartTile, mg.Maze.EndTile)
 
-	tileStack := []*Tile{}
+	var tileStack []*Tile
 
 	startTile := mg.Maze.GetRandomTile()
 

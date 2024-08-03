@@ -79,7 +79,9 @@ func (m *Maze) ForEachTile(fn func(tile *Tile)) {
 }
 
 func (m *Maze) PrintToConsole() error {
-	fmt.Printf("%s%s\n", strings.Repeat("  ", m.StartTile.X), V)
+	// start tile
+	fmt.Printf("%s%s\n", strings.Repeat("  ", m.StartTile.X), GlyphV)
+	// maze
 	for row := range m.Height {
 		for col := range m.Width {
 			tile, err := m.GetTile(col, row)
@@ -87,88 +89,12 @@ func (m *Maze) PrintToConsole() error {
 				return err
 			}
 
-			var bools []bool = []bool{
-				tile.Walls[North],
-				tile.Walls[East],
-				tile.Walls[South],
-				tile.Walls[West],
-			}
-
-			dec := boolSliceToDecimal(bools)
-			fmt.Print(decimalToGlyph(dec))
+			fmt.Print(tile.GetGlyph())
 		}
 		fmt.Print("\n")
 	}
-	fmt.Printf("%s%s\n", strings.Repeat("  ", m.EndTile.X), V)
+	// end tile
+	fmt.Printf("%s%s\n", strings.Repeat("  ", m.EndTile.X), GlyphV)
 
 	return nil
 }
-
-func decimalToGlyph(dec int) Glyph {
-	var glyph Glyph
-	switch dec {
-	case 0b0001:
-		glyph = E + H
-	case 0b0010:
-		glyph = N + H
-	case 0b0100:
-		glyph = W + " "
-	case 0b1000:
-		glyph = S + H
-	case 0b0011:
-		glyph = NE + H
-	case 0b0110:
-		glyph = NW + " "
-	case 0b1100:
-		glyph = SW + " "
-	case 0b1001:
-		glyph = SE + H
-	case 0b0111:
-		glyph = N1 + " "
-	case 0b1011:
-		glyph = E1 + H
-	case 0b1101:
-		glyph = S1 + " "
-	case 0b1110:
-		glyph = W1 + " "
-	case 0b0101:
-		glyph = V + " "
-	case 0b1010:
-		glyph = H + H
-	case 0b0000:
-		glyph = P + H
-	default:
-		glyph = "?"
-	}
-	return glyph
-}
-
-func boolSliceToDecimal(bools []bool) int {
-	var decimal int
-	for i, b := range bools {
-		if b {
-			decimal |= 1 << (len(bools) - 1 - i)
-		}
-	}
-	return decimal
-}
-
-type Glyph string
-
-const (
-	NE Glyph = "╚"
-	NW Glyph = "╝"
-	SE Glyph = "╔"
-	SW Glyph = "╗"
-	N  Glyph = "╩"
-	S  Glyph = "╦"
-	E  Glyph = "╠"
-	W  Glyph = "╣"
-	H  Glyph = "═"
-	V  Glyph = "║"
-	P  Glyph = "╬"
-	N1 Glyph = "┴"
-	E1 Glyph = "├"
-	S1 Glyph = "┬"
-	W1 Glyph = "┤"
-)

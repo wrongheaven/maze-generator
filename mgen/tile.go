@@ -1,7 +1,6 @@
 package mgen
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -19,6 +18,7 @@ func NewTile(x int, y int, mw int, mh int) *Tile {
 	walls[East] = true
 	walls[South] = true
 	walls[West] = true
+	// walls = 0b1111
 
 	return &Tile{
 		X:     x,
@@ -29,43 +29,51 @@ func NewTile(x int, y int, mw int, mh int) *Tile {
 	}
 }
 
-func (t *Tile) IsWall(dir Dir) bool {
-	if !t.Walls[dir] {
-		return false
+// Converts
+func (t *Tile) GetGlyph() Glyph {
+	var bits int
+	for i := range 4 {
+		if t.Walls[Dir(i+1)] {
+			bits |= 1 << (3 - i)
+		}
 	}
 
-	// If the wall is at the border, it is not traversable
-	if dir == North && t.Y == 0 ||
-		dir == East && t.X == t.MazeW-1 ||
-		dir == South && t.Y == t.MazeH-1 ||
-		dir == West && t.X == 0 {
-		return false
+	var glyph Glyph
+	switch bits {
+	case 0b0001:
+		glyph = GlyphE
+	case 0b0010:
+		glyph = GlyphN
+	case 0b0100:
+		glyph = GlyphW
+	case 0b1000:
+		glyph = GlyphS
+	case 0b0011:
+		glyph = GlyphNE
+	case 0b0110:
+		glyph = GlyphNW
+	case 0b1100:
+		glyph = GlyphSW
+	case 0b1001:
+		glyph = GlyphSE
+	case 0b0111:
+		glyph = GlyphN1
+	case 0b1011:
+		glyph = GlyphE1
+	case 0b1101:
+		glyph = GlyphS1
+	case 0b1110:
+		glyph = GlyphW1
+	case 0b0101:
+		glyph = GlyphV
+	case 0b1010:
+		glyph = GlyphH
+	case 0b0000:
+		glyph = GlyphP
+	default:
+		glyph = "?"
 	}
-
-	return true
-}
-
-func (t *Tile) Draw() string {
-	n := "#"
-	e := "#"
-	s := "#"
-	w := "#"
-	if !t.Walls[North] {
-		n = " "
-	}
-	if !t.Walls[East] {
-		e = " "
-	}
-	if !t.Walls[South] {
-		s = " "
-	}
-	if !t.Walls[West] {
-		w = " "
-	}
-	str := fmt.Sprintf("#%s#\n", n)
-	str += fmt.Sprintf("%s %s\n", w, e)
-	str += fmt.Sprintf("#%s#\n", s)
-	return str
+	return glyph
 }
 
 type Dir int
@@ -86,3 +94,23 @@ func RandDir() Dir {
 func OppDir(dir Dir) Dir {
 	return Dir((dir+1)%4 + 1)
 }
+
+type Glyph string
+
+const (
+	GlyphNE Glyph = "╚═"
+	GlyphNW Glyph = "╝ "
+	GlyphSE Glyph = "╔═"
+	GlyphSW Glyph = "╗ "
+	GlyphN  Glyph = "╩═"
+	GlyphS  Glyph = "╦═"
+	GlyphE  Glyph = "╠═"
+	GlyphW  Glyph = "╣ "
+	GlyphH  Glyph = "══"
+	GlyphV  Glyph = "║ "
+	GlyphP  Glyph = "╬═"
+	GlyphN1 Glyph = "┴ "
+	GlyphE1 Glyph = "├═"
+	GlyphS1 Glyph = "┬ "
+	GlyphW1 Glyph = "┤ "
+)
